@@ -1,0 +1,11 @@
+*.log
+*.err
+colorflower-smoke*.png
+
+node_modules/
+dist/
+build/
+.next/
+.cache/
+.DS_Store
+Thumbs.db

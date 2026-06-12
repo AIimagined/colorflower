@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Colorflower</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' x2='1' y1='0' y2='1'%3E%3Cstop stop-color='%23f04f72'/%3E%3Cstop offset='.35' stop-color='%23ffd447'/%3E%3Cstop offset='.7' stop-color='%233bd6b4'/%3E%3Cstop offset='1' stop-color='%236c63ff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='18' fill='url(%23g)'/%3E%3Ccircle cx='32' cy='32' r='8' fill='%23201822'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="./src/styles.css" />
+</head>
+<body>
+  <main class="app-shell">
+    <header class="top-bar" aria-label="Colorflower workspace header">
+      <div class="brand-lockup">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <div>
+          <strong>Colorflower</strong>
+          <span>Enterprise color system studio</span>
+        </div>
+      </div>
+      <div class="top-actions" aria-label="Workspace status">
+        <span>Live picker</span>
+        <span>Token ready</span>
+        <span>WCAG assist</span>
+      </div>
+    </header>
+
+    <section class="tool-panel" aria-label="Color picker controls">
+      <div class="brand-block">
+        <p class="eyebrow">Colorflower</p>
+        <h1>Flower-native color picker</h1>
+        <p class="product-copy">Select from spectrum petals, refine with precise controls, and copy production-ready color formats.</p>
+      </div>
+
+      <div class="readout" aria-live="polite" data-tooltip="Live output for the currently selected petal, hue wheel, or slider color.">
+        <div class="swatch" id="selected-swatch"></div>
+        <div>
+          <p id="status" class="status-pill">Colorflower</p>
+          <div class="format-grid">
+            <p><strong>HEX</strong> <span id="selected-hex">#e93a3a</span></p>
+            <p><strong>RGB</strong> <span id="selected-rgb">rgb(233, 58, 58)</span></p>
+            <p><strong>HSL</strong> <span id="selected-hsl">hsl(0, 80%, 57%)</span></p>
+            <p><strong>OKLCH</strong> <span id="selected-oklch">oklch(62.2% 0.21 29)</span></p>
+            <p><strong>OKLab</strong> <span id="selected-oklab">oklab(62.2% 0.17 0.10)</span></p>
+          </div>
+        </div>
+      </div>
+
+      <section class="insight-card" aria-label="Selected color intelligence" data-tooltip="Generated naming and contrast guidance for the selected color.">
+        <div>
+          <p class="mini-label">Generated name</p>
+          <strong id="ai-color-name">Signal Poppy</strong>
+        </div>
+        <div>
+          <p class="mini-label">Contrast on background</p>
+          <label class="inline-field" for="contrast-bg">
+            <span>BG</span>
+            <input id="contrast-bg" type="text" value="#ffffff" autocomplete="off" />
+          </label>
+          <p id="contrast-result" class="contrast-result">AA ready</p>
+        </div>
+      </section>
+
+      <div class="control-card">
+        <label class="control" for="harmony-mode" data-tooltip="Regenerates petals using professional color harmony rules.">
+          <span>Palette logic</span>
+          <select id="harmony-mode">
+            <option value="spectrum">Full spectrum</option>
+            <option value="complementary">Complementary</option>
+            <option value="triadic">Triadic</option>
+            <option value="analogous">Analogous</option>
+            <option value="monochrome">Monochrome</option>
+            <option value="split">Split-complementary</option>
+            <option value="image">Image palette</option>
+          </select>
+        </label>
+
+        <label class="control" for="mood-mode" data-tooltip="Adjusts saturation, lightness, and hue bias for brand mood exploration.">
+          <span>Brand mood</span>
+          <select id="mood-mode">
+            <option value="balanced">Balanced</option>
+            <option value="luxury">Luxury</option>
+            <option value="calm">Calm</option>
+            <option value="playful">Playful</option>
+            <option value="clinical">Clinical</option>
+            <option value="editorial">Editorial</option>
+            <option value="nature">Nature</option>
+          </select>
+        </label>
+
+        <div class="lock-row" aria-label="Lock channels" data-tooltip="Keep selected hue, saturation, or lightness unchanged during regeneration.">
+          <label><input id="lock-hue" type="checkbox" /> Lock hue</label>
+          <label><input id="lock-saturation" type="checkbox" /> Lock saturation</label>
+          <label><input id="lock-lightness" type="checkbox" /> Lock lightness</label>
+        </div>
+
+        <label class="control hue-control" for="hue-range" data-tooltip="Fine tune the selected color hue from 0 to 359 degrees.">
+          <span>Hue <output id="hue-value">358deg</output></span>
+          <input id="hue-range" class="hue-slider" type="range" min="0" max="359" step="1" value="358" autocomplete="off" />
+        </label>
+
+        <label class="control saturation-control" for="saturation-range" data-tooltip="Fine tune color intensity without changing hue.">
+          <span>Saturation <output id="saturation-value">76%</output></span>
+          <input id="saturation-range" type="range" min="0" max="100" step="1" value="76" autocomplete="off" />
+        </label>
+
+        <label class="control" for="motion-range" data-tooltip="Controls bloom animation duration.">
+          <span>Bloom speed <output id="motion-value">520ms</output></span>
+          <input id="motion-range" type="range" min="180" max="900" step="20" value="520" />
+        </label>
+      </div>
+
+      <div class="button-row">
+        <button class="command" id="toggle-bloom" type="button" data-tooltip="Collapse or reopen the animated flower.">Toggle Bloom</button>
+        <button class="command" id="shuffle-palette" type="button" data-tooltip="Create a fresh petal palette using the current logic, mood, and locks.">Regenerate</button>
+        <button class="command" id="copy-color" type="button" data-tooltip="Copy the selected color as HEX.">Copy HEX</button>
+      </div>
+
+      <section class="bouquet-card" aria-label="Palette bouquet">
+        <div class="section-heading">
+          <div>
+            <p class="mini-label">Bouquet</p>
+            <h3>Saved palette</h3>
+          </div>
+          <button class="small-command" id="add-bouquet" type="button" data-tooltip="Save the current color into your bouquet palette.">Add color</button>
+        </div>
+        <div id="bouquet-list" class="bouquet-list" aria-label="Saved colors"></div>
+        <div class="export-row">
+          <button class="small-command" id="copy-tokens" type="button" data-tooltip="Copy saved bouquet colors as CSS custom properties.">Copy CSS tokens</button>
+          <button class="small-command" id="copy-json" type="button" data-tooltip="Copy saved bouquet colors as structured JSON.">Copy JSON</button>
+        </div>
+        <pre id="token-output" class="token-output">:root {
+  --colorflower-1: #e93a3a;
+}</pre>
+      </section>
+
+      <section class="utility-grid" aria-label="Advanced tools">
+        <div class="utility-card">
+          <p class="mini-label">Compare</p>
+          <div class="compare-actions">
+            <button class="small-command" id="set-compare-a" type="button" data-tooltip="Use the current color as comparison color A.">Set A</button>
+            <button class="small-command" id="set-compare-b" type="button" data-tooltip="Use the current color as comparison color B.">Set B</button>
+          </div>
+          <div id="compare-result" class="compare-result">Pick two colors to compare harmony and contrast.</div>
+        </div>
+
+        <label class="utility-card upload-card" for="image-upload" data-tooltip="Extract dominant colors from an uploaded image and map them onto the flower.">
+          <p class="mini-label">Image to flower</p>
+          <strong>Extract palette</strong>
+          <span>Upload an image and petals become sampled colors.</span>
+          <input id="image-upload" type="file" accept="image/*" />
+        </label>
+      </section>
+
+      <section class="history-card" aria-label="Color history">
+        <div class="section-heading">
+          <div>
+            <p class="mini-label">Timeline</p>
+            <h3>Recent colors</h3>
+          </div>
+        </div>
+        <div id="color-history" class="color-history"></div>
+      </section>
+    </section>
+
+    <section class="picker-stage" aria-label="Animated flower color picker">
+      <div class="stage-card">
+        <div class="stage-header">
+          <div>
+            <p class="eyebrow">Interactive canvas</p>
+            <h2>Pick from the flower</h2>
+          </div>
+          <span data-tooltip="The flower petals are generated by Colorflower's own palette engine.">36 spectrum petals</span>
+        </div>
+        <div class="picker-wrap">
+          <div id="colorflower-picker" class="colorflower-picker"></div>
+        </div>
+        <div id="palette-garden" class="palette-garden" aria-label="Saved bouquet garden"></div>
+        <p class="stage-hint">Choose a petal, drag the outer hue wheel, use precision sliders, or generate palettes from brand logic.</p>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="./src/app.js"></script>
+</body>
+</html>
