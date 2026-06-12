@@ -10,6 +10,10 @@ Colorflower turns color selection into a visual design workflow. Instead of star
 
 The app is built as a dependency-free static web project so it can run locally, be hosted on GitHub Pages, or be dropped into a design prototype without a build step.
 
+## Inspiration
+
+Colorflower was inspired by the idea of a flower-based color picker, including projects such as BlossomColorPicker. The implementation, UI, palette engine, export tools, animations, and codebase are original to Colorflower.
+
 ## Features
 
 - Animated flower color picker with 36 spectrum petals.
