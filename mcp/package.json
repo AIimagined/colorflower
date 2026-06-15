@@ -1,0 +1,15 @@
+{
+  "name": "colorflower-mcp",
+  "version": "1.5.0",
+  "private": true,
+  "type": "module",
+  "description": "MCP server exposing the Colorflower color engine as tools.",
+  "bin": { "colorflower-mcp": "server.js" },
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "zod": "^3.23.8"
+  }
+}

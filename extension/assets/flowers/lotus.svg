@@ -1,0 +1,21 @@
+<svg width="240" height="160" viewBox="0 0 240 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="lotusGlow" x1="0.2" y1="0.1" x2="0.9" y2="0.9">
+      <stop offset="0%" stop-color="#fffaf4"/>
+      <stop offset="55%" stop-color="#f4ccaf"/>
+      <stop offset="100%" stop-color="#b96d8a"/>
+    </linearGradient>
+  </defs>
+  <rect width="240" height="160" rx="12" fill="url(#lotusGlow)"/>
+  <g fill="#c56e8f">
+    <path d="M120 20 C130 38 130 60 120 78 C110 60 110 38 120 20Z"/>
+    <path d="M120 20 C138 32 156 55 148 76 C126 66 108 55 120 20Z"/>
+    <path d="M120 20 C108 32 90 55 92 76 C114 66 132 55 120 20Z"/>
+    <path d="M120 138 C130 120 130 98 120 80 C110 98 110 120 120 138Z" transform="translate(0 6)"/>
+    <path d="M120 143 C139 131 157 111 148 90 C126 99 108 111 120 143Z"/>
+    <path d="M120 143 C102 131 84 111 92 90 C114 99 132 111 120 143Z"/>
+  </g>
+  <g fill="#5e2f50" opacity="0.45">
+    <ellipse cx="120" cy="80" rx="18" ry="20"/>
+  </g>
+</svg>

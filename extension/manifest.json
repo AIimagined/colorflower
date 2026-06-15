@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "Colorflower \u2014 Color Picker",
+  "short_name": "Colorflower",
+  "version": "1.5.0",
+  "description": "Flower-native color picker and color system studio.",
+  "icons": {
+    "16": "assets/icons/icon-16.png",
+    "32": "assets/icons/icon-32.png",
+    "48": "assets/icons/icon-48.png",
+    "128": "assets/icons/icon-128.png"
+  },
+  "action": {
+    "default_title": "Open Colorflower",
+    "default_icon": {
+      "16": "assets/icons/icon-16.png",
+      "32": "assets/icons/icon-32.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
+  }
+}

@@ -1,10 +1,19 @@
 *.log
 *.err
 colorflower-smoke*.png
+/stage1-living-flower.png
+/stage2-wind-tilt.png
 
 node_modules/
+__pycache__/
+*.pyc
 dist/
 build/
+
+# Internal working notes & dev artifacts — never publish.
+.remember/
+.playwright-mcp/
+docs/superpowers/
 .next/
 .cache/
 .DS_Store
