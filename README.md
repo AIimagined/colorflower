@@ -8,7 +8,10 @@ contrast, and copy production-ready tokens.
 ![Colorflower UI](./assets/screenshots/colorflower-ui.png)
 
 <p align="center">
-  <img src="./assets/screenshots/colorflower-fold.gif" alt="The flower folds into a bud when you click the pistil, and blooms open again" width="420" />
+  <video src="https://github.com/AIimagined/colorflower/raw/main/assets/media/colorflower-demo.mp4" poster="./assets/media/colorflower-demo-poster.jpg" controls muted loop playsinline width="640">
+    Your browser can't play this video —
+    <a href="./assets/media/colorflower-demo.mp4">download the demo</a>.
+  </video>
 </p>
 
 ## About
