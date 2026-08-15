@@ -19,7 +19,7 @@ EXT = ROOT / "extension"
 APP_JS = (ROOT / "src" / "app.js").read_text(encoding="utf-8")
 VERSION = re.search(r"APP_VERSION\s*=\s*'([\d.]+)'", APP_JS).group(1)
 
-COPY = ["index.html", "src", "assets", "site.webmanifest"]
+COPY = ["index.html", "src", "core", "vendor", "data", "assets", "site.webmanifest"]
 
 MANIFEST = {
     "manifest_version": 3,

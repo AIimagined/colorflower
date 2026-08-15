@@ -1,5 +1,50 @@
 # Colorflower — Release Notes
 
+## v1.6.0
+
+Color science, brand kits, and a leaner studio.
+
+### Highlights
+
+**Learn — interactive color theory**
+- A new in-app **Learn** dialog: eight interactive chapters — the color
+  wheel, pigment vs. light mixing, hue/saturation/lightness,
+  tint/shade/tone, harmony geometry, contrast, color psychology, and named
+  colors — each with live, manipulable examples.
+
+**Brand kit generator**
+- New **Brand** dialog: pick a seed color on a miniature flower picker and
+  generate a complete light/dark semantic token theme — backgrounds,
+  surfaces, text, accents — with a WCAG contrast audit run on every pairing.
+- Brand color dataset: look up any of ~700 brands, search by name, or find
+  the nearest brands to a color by perceptual (ΔE) distance.
+
+**Engine upgrades** (shared by the app, REST API, and MCP server)
+- **Spectral pigment mixing** (Kubelka-Munk) — colors mix like real paint.
+- 10-step tint/shade ramps and alpha-blended dark-background palettes.
+- OKLCH/OKLab conversions, perceptual ΔE (OKLab) distance, tint/shade/tone scales,
+  harmony suggestions with rationale, and one-call theme generation.
+- 25-test engine suite (`node --test core/color-engine.test.js`).
+
+**Agent & developer surfaces**
+- MCP server grown to **14 tools + 2 prompts**, all returning typed
+  `structuredContent` with read-only/idempotent annotations.
+- REST API mirrors every engine capability and serves an OpenAPI 3.1 spec
+  plus a plugin manifest for function-calling agents.
+- New portable **taste skill** (`skills/colorflower-taste/`) encoding palette
+  judgment for AI agents, and `DESIGN.md` documenting the app's own tokens.
+
+**Leaner studio UI**
+- **Zen / Focus / Studio** density switcher — from a minimal swatch-and-
+  sliders strip to the full toolkit; your choice is remembered.
+- Single-screen layout: the studio fits the viewport with no page scrolling,
+  the tool panel flows into two columns, and the flower now scales itself to
+  the space available instead of overlapping neighboring controls.
+- Tooltips rebuilt — positioned in viewport space so they are never clipped
+  by panel edges or the screen.
+- Decluttered chrome: removed decorative badges and duplicate labels.
+- Bouquet chips can be removed individually (×).
+
 ## v1.5.0
 
 A flower-native color system studio: pick colors from an animated 3D flower,

@@ -1,4 +1,9 @@
-const APP_VERSION = '1.5.0';
+import {
+  clamp, hexToRgb, relativeLuminance, contrastRatio, rgbToOklab, oklabToRgb,
+  formatOklab, formatOklch, rgbToHsl, hslToRgb, rgbToHex, hslToHex, normalizeHue
+} from '../core/color-engine.js';
+
+const APP_VERSION = '1.6.0';
 
 const BLOOM_EASING = 'cubic-bezier(.16, .84, .22, 1)';
 const PETAL_CUP_PER_LAYER = 7;
@@ -10,15 +15,15 @@ const PETAL_REPULSION_RADIUS = 128;
 const PETAL_REPULSION_PUSH = 24;
 // Bud fold: clicking the pistil furls the petals up toward the centre into a
 // closed bud. Tuned so outer petals stand up more and wrap over the inner ones.
-const BUD_FOLD_DURATION = 820;
-const BUD_GATHER = 0.2;
-const BUD_LIFT = 6;
-// Lower cup angles so petals mound into a rounded bud instead of standing
-// edge-on as sharp spikes.
-const BUD_CUP_BASE = 38;
-const BUD_CUP_PER_LAYER = 6;
-const BUD_SCALE = 0.82;
-const INTERACTIVE_PETAL_TRANSITION = 'transform 200ms cubic-bezier(.22,.61,.36,1), opacity 130ms ease-out, background 180ms ease, filter 180ms ease, box-shadow 180ms ease';
+const BUD_FOLD_DURATION = 900;
+const BUD_GATHER = 0.15;
+const BUD_LIFT = 10;
+// Cup angles tuned so petals wrap over the centre into a compact rounded
+// bud (tighter gather + smaller scale = more overlap, reads "closed").
+const BUD_CUP_BASE = 50;
+const BUD_CUP_PER_LAYER = 8;
+const BUD_SCALE = 0.76;
+const INTERACTIVE_PETAL_TRANSITION = 'transform 240ms cubic-bezier(.33,1,.68,1), opacity 130ms ease-out, background 180ms ease, filter 180ms ease, box-shadow 180ms ease';
 const PETAL_STAGGER = 14;
 const BAR_WIDTH = 16;
 const SLIDER_OFFSET = 54;
@@ -36,10 +41,9 @@ const selectedHsl = document.getElementById('selected-hsl');
 const selectedOklch = document.getElementById('selected-oklch');
 const selectedOklab = document.getElementById('selected-oklab');
 const aiColorName = document.getElementById('ai-color-name');
-const statusText = document.getElementById('status');
 const copyButton = document.getElementById('copy-color');
 const toggleBloom = document.getElementById('toggle-bloom');
-const layoutToggle = document.getElementById('layout-toggle');
+const densityButtons = document.querySelectorAll('.density-btn');
 const appShell = document.querySelector('.app-shell');
 const helpToggle = document.getElementById('help-toggle');
 const helpDialog = document.getElementById('help-dialog');
@@ -159,10 +163,6 @@ const state = {
   compare: { a: null, b: null }
 };
 
-function clamp(value, min, max) {
-  return Math.min(max, Math.max(min, value));
-}
-
 function hueToDegrees(value) {
   const token = String(value || '0').trim().toLowerCase();
   const number = Number.parseFloat(token);
@@ -178,88 +178,6 @@ function percentageOrNumber(value, percentScale = 1) {
   const number = Number.parseFloat(token);
   if (Number.isNaN(number)) return 0;
   return token.endsWith('%') ? number / 100 * percentScale : number;
-}
-
-function linearToSrgb(value) {
-  const v = clamp(value, 0, 1);
-  return v <= 0.0031308 ? 12.92 * v : 1.055 * Math.pow(v, 1 / 2.4) - 0.055;
-}
-
-function oklabToRgb(l, a, b) {
-  const lPrime = l + 0.3963377774 * a + 0.2158037573 * b;
-  const mPrime = l - 0.1055613458 * a - 0.0638541728 * b;
-  const sPrime = l - 0.0894841775 * a - 1.2914855480 * b;
-  const l3 = lPrime ** 3;
-  const m3 = mPrime ** 3;
-  const s3 = sPrime ** 3;
-  const r = 4.0767416621 * l3 - 3.3077115913 * m3 + 0.2309699292 * s3;
-  const g = -1.2684380046 * l3 + 2.6097574011 * m3 - 0.3413193965 * s3;
-  const blue = -0.0041960863 * l3 - 0.7034186147 * m3 + 1.7076147010 * s3;
-  return {
-    r: Math.round(linearToSrgb(r) * 255),
-    g: Math.round(linearToSrgb(g) * 255),
-    b: Math.round(linearToSrgb(blue) * 255)
-  };
-}
-
-function srgbToLinear(value) {
-  const v = clamp(value / 255, 0, 1);
-  return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
-}
-
-function rgbToOklab(r, g, b) {
-  const red = srgbToLinear(r);
-  const green = srgbToLinear(g);
-  const blue = srgbToLinear(b);
-  const l = 0.4122214708 * red + 0.5363325363 * green + 0.0514459929 * blue;
-  const m = 0.2119034982 * red + 0.6806995451 * green + 0.1073969566 * blue;
-  const s = 0.0883024619 * red + 0.2817188376 * green + 0.6299787005 * blue;
-  const lRoot = Math.cbrt(l);
-  const mRoot = Math.cbrt(m);
-  const sRoot = Math.cbrt(s);
-  return {
-    l: 0.2104542553 * lRoot + 0.7936177850 * mRoot - 0.0040720468 * sRoot,
-    a: 1.9779984951 * lRoot - 2.4285922050 * mRoot + 0.4505937099 * sRoot,
-    b: 0.0259040371 * lRoot + 0.7827717662 * mRoot - 0.8086757660 * sRoot
-  };
-}
-
-function formatOklab(rgb) {
-  const oklab = rgbToOklab(rgb.r, rgb.g, rgb.b);
-  return `oklab(${(oklab.l * 100).toFixed(1)}% ${oklab.a.toFixed(4)} ${oklab.b.toFixed(4)})`;
-}
-
-function formatOklch(rgb) {
-  const oklab = rgbToOklab(rgb.r, rgb.g, rgb.b);
-  const chroma = Math.sqrt(oklab.a * oklab.a + oklab.b * oklab.b);
-  let hue = Math.atan2(oklab.b, oklab.a) * 180 / Math.PI;
-  if (hue < 0) hue += 360;
-  return `oklch(${(oklab.l * 100).toFixed(1)}% ${chroma.toFixed(4)} ${Math.round(hue)})`;
-}
-
-function hexToRgb(hex) {
-  const raw = String(hex || '').trim().replace('#', '');
-  if (!/^[0-9a-f]{3}$|^[0-9a-f]{6}$/i.test(raw)) return null;
-  const full = raw.length === 3 ? raw.split('').map((part) => part + part).join('') : raw;
-  return {
-    r: Number.parseInt(full.slice(0, 2), 16),
-    g: Number.parseInt(full.slice(2, 4), 16),
-    b: Number.parseInt(full.slice(4, 6), 16)
-  };
-}
-
-function relativeLuminance(rgb) {
-  const channel = (value) => {
-    const normalized = value / 255;
-    return normalized <= 0.03928 ? normalized / 12.92 : ((normalized + 0.055) / 1.055) ** 2.4;
-  };
-  return 0.2126 * channel(rgb.r) + 0.7152 * channel(rgb.g) + 0.0722 * channel(rgb.b);
-}
-
-function getContrastRatio(foreground, background) {
-  const l1 = relativeLuminance(foreground);
-  const l2 = relativeLuminance(background);
-  return (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
 }
 
 function getHueFamily(hue) {
@@ -327,7 +245,7 @@ function selectSnapshot(snapshot) {
   updateColorOutput();
 }
 
-function renderChipList(container, colors, emptyText) {
+function renderChipList(container, colors, emptyText, onRemove) {
   container.replaceChildren();
   if (!colors.length) {
     const empty = document.createElement('p');
@@ -347,14 +265,33 @@ function renderChipList(container, colors, emptyText) {
     label.textContent = color.hex;
     button.append(dot, label);
     button.addEventListener('click', () => selectSnapshot(color));
+    if (onRemove) {
+      // Hover/focus-revealed × that removes the chip without selecting it.
+      const remove = document.createElement('span');
+      remove.className = 'chip-remove';
+      remove.setAttribute('role', 'button');
+      remove.setAttribute('aria-label', `Remove ${color.hex} from saved palette`);
+      remove.textContent = '×';
+      remove.addEventListener('click', (event) => {
+        event.stopPropagation();
+        onRemove(color);
+      });
+      button.appendChild(remove);
+    }
     container.appendChild(button);
   });
 }
 
+function removeFromBouquet(color) {
+  state.bouquet = state.bouquet.filter((item) => item !== color);
+  renderBouquet();
+}
+
 function renderBouquet() {
-  renderChipList(bouquetList, state.bouquet, 'No saved colors yet.');
+  renderChipList(bouquetList, state.bouquet, 'No saved colors yet.', removeFromBouquet);
   renderChipList(paletteGarden, state.bouquet.slice(0, 10), 'Saved colors grow here.');
   renderTokenOutput();
+  fitFlower(); // garden height changes shrink/grow the flower's free space
 }
 
 function renderHistory() {
@@ -370,9 +307,9 @@ function addHistory(output) {
 
 function updateContrast(output) {
   const background = hexToRgb(contrastBg.value) || { r: 255, g: 255, b: 255 };
-  const ratio = getContrastRatio(output.rgb, background);
-  const grade = ratio >= 7 ? 'AAA' : ratio >= 4.5 ? 'AA' : ratio >= 3 ? 'Large text only' : 'Fail';
-  contrastResult.textContent = `${ratio.toFixed(2)}:1 - ${grade}`;
+  const ratio = contrastRatio(output.rgb, background);
+  const grade = ratio >= 7 ? 'AAA' : ratio >= 4.5 ? 'AA' : ratio >= 3 ? 'AA large text only' : 'Below AA';
+  contrastResult.textContent = `${ratio.toFixed(2)}:1 · ${grade}`;
   contrastResult.dataset.grade = ratio >= 4.5 ? 'pass' : ratio >= 3 ? 'warn' : 'fail';
 }
 
@@ -384,7 +321,7 @@ function updateCompare() {
   }
   const hueDistance = Math.abs(a.h - b.h);
   const hueDelta = Math.round(Math.min(hueDistance, 360 - hueDistance));
-  const ratio = getContrastRatio(hexToRgb(a.hex), hexToRgb(b.hex));
+  const ratio = contrastRatio(hexToRgb(a.hex), hexToRgb(b.hex));
   const swatches = document.createElement('div');
   swatches.className = 'compare-swatches';
   swatches.style.setProperty('--a', a.hex);
@@ -470,52 +407,6 @@ function extractPaletteFromImage(file) {
     renderPicker();
   };
   image.src = url;
-}
-
-function rgbToHsl(r, g, b) {
-  const rn = r / 255;
-  const gn = g / 255;
-  const bn = b / 255;
-  const max = Math.max(rn, gn, bn);
-  const min = Math.min(rn, gn, bn);
-  const delta = max - min;
-  let h = 0;
-  if (delta !== 0) {
-    if (max === rn) h = ((gn - bn) / delta) % 6;
-    else if (max === gn) h = (bn - rn) / delta + 2;
-    else h = (rn - gn) / delta + 4;
-    h *= 60;
-  }
-  if (h < 0) h += 360;
-  const l = (max + min) / 2;
-  const s = delta === 0 ? 0 : delta / (1 - Math.abs(2 * l - 1));
-  return { h, s: s * 100, l: l * 100 };
-}
-
-function hslToRgb(h, s, l) {
-  const sNorm = s / 100;
-  const lNorm = l / 100;
-  const k = (n) => (n + h / 30) % 12;
-  const a = sNorm * Math.min(lNorm, 1 - lNorm);
-  const f = (n) => lNorm - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
-  return {
-    r: Math.round(255 * f(0)),
-    g: Math.round(255 * f(8)),
-    b: Math.round(255 * f(4))
-  };
-}
-
-function rgbToHex(r, g, b) {
-  return `#${[r, g, b].map((part) => clamp(Math.round(part), 0, 255).toString(16).padStart(2, '0')).join('')}`;
-}
-
-function hslToHex(h, s, l) {
-  const rgb = hslToRgb(h, s, l);
-  return rgbToHex(rgb.r, rgb.g, rgb.b);
-}
-
-function normalizeHue(hue) {
-  return ((hue % 360) + 360) % 360;
 }
 
 function parseFunctionArgs(input, name) {
@@ -863,8 +754,8 @@ function makeCalyx() {
     // angle and tint — organic rather than a uniform star.
     const base = (i / LEAVES) * 360;
     const jitter = Math.sin(i * 12.9898) * 7;
-    const len = 0.82 + (Math.sin(i * 78.233) * 0.5 + 0.5) * 0.46;
-    const wid = 0.88 + (Math.cos(i * 3.17) * 0.5 + 0.5) * 0.34;
+    const len = 0.74 + (Math.sin(i * 78.233) * 0.5 + 0.5) * 0.22;
+    const wid = 0.92 + (Math.cos(i * 3.17) * 0.5 + 0.5) * 0.26;
     const tint = (Math.sin(i * 5.21) * 0.5 + 0.5) * 10 - 5;
     leaf.style.setProperty('--sepal-angle', `${(base + jitter).toFixed(2)}deg`);
     leaf.style.setProperty('--sepal-len', len.toFixed(3));
@@ -998,7 +889,48 @@ function renderPicker() {
   pickerEl.appendChild(makeCore());
   selectColor(state.selected || state.petals[0]?.color || colors[8] || colors[0], true);
   updateExpandedClass();
+  // Two passes: the first shrink changes surrounding layout, the second
+  // re-measures against the settled geometry.
+  fitFlower();
+  requestAnimationFrame(fitFlower);
   requestAnimationFrame(() => setExpanded(true));
+}
+
+// Scale the whole bloom down when the stage is too short for its intrinsic
+// (JS-computed) pixel size, so it never overlaps the stage header above or
+// the caption/garden below. Uses the standalone `scale` property, which
+// composes with the float/wind `transform` layers without touching them.
+const cfFloatEl = document.querySelector('.cf-float');
+const stageHeaderEl = document.querySelector('.stage-header');
+const stageHintEl = document.querySelector('.stage-hint');
+
+function fitFlower() {
+  if (!state.layout || !cfFloatEl || !stageHeaderEl) return;
+  const below = paletteGarden && paletteGarden.offsetHeight > 0 ? paletteGarden : stageHintEl;
+  if (!below) return;
+  const avail = below.getBoundingClientRect().top - stageHeaderEl.getBoundingClientRect().bottom - 12;
+  // The 3D perspective tilt means the painted bloom is ~82% of its layout
+  // box height, so size against the projected height, not the box. Floor at
+  // 0.62 — below that the flower reads as a thumbnail; a little overlap on
+  // extreme viewports beats an unusably small picker.
+  const projected = state.layout.size * 0.82;
+  const fit = avail > 0 ? Math.min(1, Math.max(avail / projected, 0.62)) : 1;
+  state.fit = fit;
+  if (fit === 1) {
+    cfFloatEl.style.scale = '';
+    cfFloatEl.style.width = '';
+    cfFloatEl.style.height = '';
+    cfFloatEl.style.translate = '';
+  } else {
+    // The scale property shrinks the painted flower but not its layout box —
+    // explicitly size the wrapper too so the stage grid centers it correctly.
+    const px = `${Math.round(state.layout.size * fit)}px`;
+    cfFloatEl.style.scale = String(fit);
+    cfFloatEl.style.width = px;
+    cfFloatEl.style.height = px;
+    cfFloatEl.style.translate = '';
+  }
+  state.pickerCenter = null;
 }
 
 function setExpanded(expanded) {
@@ -1014,7 +946,7 @@ function setExpanded(expanded) {
 }
 
 function budPetalTransition(staggerDelay = 0) {
-  return `transform ${BUD_FOLD_DURATION}ms cubic-bezier(.6, .02, .2, 1) ${staggerDelay}ms, opacity 200ms ease, background 180ms ease, filter 180ms ease, box-shadow 180ms ease`;
+  return `transform ${BUD_FOLD_DURATION}ms cubic-bezier(.45, .05, .15, 1) ${staggerDelay}ms, opacity 200ms ease, background 180ms ease, filter ${BUD_FOLD_DURATION}ms ease, box-shadow 180ms ease`;
 }
 
 // Furl the bloom into a bud (or unfurl back). Outer layers lead when closing so
@@ -1026,7 +958,7 @@ function setBud(on) {
     const layer = item.layerIndex || 0;
     const stagger = on ? (2 - layer) * 70 : layer * 70;
     item.el.style.transition = budPetalTransition(Math.max(0, stagger));
-    writePetalTransform(item);
+    updatePetalTransform(item);
   }
   window.clearTimeout(state.relaxTimer);
   state.relaxTimer = window.setTimeout(relaxPetalTransitions, BUD_FOLD_DURATION + 260);
@@ -1105,7 +1037,11 @@ function writePetalTransform(item) {
 // they are written only on those discrete events, never per frame.
 function writePetalCosmetics(item) {
   item.el.style.opacity = state.expanded ? '1' : '0';
-  item.el.style.filter = item.hovered ? 'brightness(1.12) saturate(1.12)' : 'brightness(1)';
+  // In bud: mute all petals toward a single soft tone so the furled cluster
+  // reads as one closed bud, not a candy ball of 36 competing colors.
+  item.el.style.filter = state.bud
+    ? 'saturate(.68) brightness(.97)'
+    : item.hovered ? 'brightness(1.12) saturate(1.12)' : 'brightness(1)';
   item.el.style.boxShadow = item.hovered
     ? '0 12px 24px rgba(80, 12, 18, .26)'
     : '0 5px 14px rgba(80, 12, 18, .16)';
@@ -1137,11 +1073,6 @@ function updateColorOutput() {
   saturationRange.value = String(Math.round(state.selected.s));
   saturationValue.textContent = `${Math.round(state.selected.s)}%`;
   saturationRange.style.background = `linear-gradient(90deg, hsl(${output.h}, 0%, ${Math.round(output.l)}%), hsl(${output.h}, 100%, ${Math.round(output.l)}%))`;
-  statusText.textContent = state.selected.sourceFormat === 'hue-ring'
-    ? 'Colorflower - Hue wheel'
-    : state.selected.sourceFormat === 'manual'
-      ? 'Colorflower - Custom color'
-    : `Colorflower - ${state.selected.sourceFormat.toUpperCase()}`;
   pickerEl.style.setProperty('--core-color', output.hex);
   pickerEl.style.setProperty('--ring-color', output.hsl);
   updateHueHandle(output);
@@ -1264,9 +1195,12 @@ function refreshPickerCenter() {
 
 function queueInteractiveUpdate(event) {
   if (!state.pickerCenter) refreshPickerCenter();
+  // Divide by the fit scale so mouse offsets stay in the flower's own
+  // (unscaled) coordinate space, keeping wind/petal-sway math calibrated.
+  const fit = state.fit || 1;
   state.mouse = {
-    x: event.clientX - state.pickerCenter.x,
-    y: event.clientY - state.pickerCenter.y
+    x: (event.clientX - state.pickerCenter.x) / fit,
+    y: (event.clientY - state.pickerCenter.y) / fit
   };
   if (state.raf) return;
   state.raf = requestAnimationFrame(() => {
@@ -1292,20 +1226,40 @@ if (helpToggle && helpDialog) {
   });
 }
 
-if (layoutToggle && appShell) {
-  const label = layoutToggle.querySelector('.layout-toggle-label');
-  layoutToggle.addEventListener('click', () => {
-    const collapsed = appShell.classList.toggle('is-collapsed');
-    layoutToggle.setAttribute('aria-pressed', String(collapsed));
-    if (label) label.textContent = collapsed ? 'Expand' : 'Focus';
-    // The flower moves when the panels fold, so the cached pointer center is
-    // stale. Invalidate it (and refresh after the layout transition settles).
-    state.pickerCenter = null;
-    window.setTimeout(() => { state.pickerCenter = null; }, 560);
-    // Drop focus so the button's hover/focus tooltip doesn't linger over the
-    // now-empty canvas after a mouse click.
-    layoutToggle.blur();
+// Three-position density switch: Zen (minimal — swatch + hue/saturation
+// sliders + copy, no flower), Focus (existing collapsed-panels mode), Studio
+// (full layout, default). All three share the same underlying state/engine;
+// switching never loses the current selection.
+const DENSITY_LEVELS = ['zen', 'focus', 'studio'];
+
+function setDensity(level, { persist = true } = {}) {
+  if (!appShell || !DENSITY_LEVELS.includes(level)) return;
+  appShell.classList.toggle('is-zen', level === 'zen');
+  appShell.classList.toggle('is-collapsed', level === 'focus');
+  densityButtons.forEach((btn) => {
+    const active = btn.dataset.density === level;
+    btn.classList.toggle('is-active', active);
+    btn.setAttribute('aria-pressed', String(active));
   });
+  // The flower moves/hides across density changes, so the cached pointer
+  // center goes stale. Invalidate it (and refresh after the CSS transition).
+  state.pickerCenter = null;
+  window.setTimeout(() => { state.pickerCenter = null; fitFlower(); }, 560);
+  if (persist) {
+    try { window.localStorage.setItem('cf-density', level); } catch { /* private mode etc. */ }
+  }
+}
+
+if (densityButtons.length && appShell) {
+  densityButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      setDensity(btn.dataset.density);
+      btn.blur(); // don't leave the hover/focus tooltip lingering after a click
+    });
+  });
+  let savedDensity = 'studio';
+  try { savedDensity = window.localStorage.getItem('cf-density') || 'studio'; } catch { /* private mode etc. */ }
+  setDensity(savedDensity, { persist: false });
 }
 rebloomButton.addEventListener('click', rebloom);
 copyButton.addEventListener('click', async () => {
@@ -1392,8 +1346,49 @@ pickerEl.addEventListener('pointerleave', () => {
 });
 
 // Geometry only changes on resize/scroll; invalidate the cache then, never per move.
-window.addEventListener('resize', () => { state.pickerCenter = null; });
+window.addEventListener('resize', () => { state.pickerCenter = null; fitFlower(); });
 window.addEventListener('scroll', () => { state.pickerCenter = null; }, { passive: true });
+
+// --- Shared tooltip -------------------------------------------------------
+// One fixed-position element for every [data-tooltip] trigger. Placed with
+// viewport-clamped math so it can never be cut off by a screen edge or by
+// the tool panel's overflow clipping.
+const tooltipEl = document.createElement('div');
+tooltipEl.className = 'cf-tooltip';
+tooltipEl.setAttribute('role', 'tooltip');
+document.body.appendChild(tooltipEl);
+
+function showTooltip(trigger) {
+  const text = trigger.getAttribute('data-tooltip');
+  if (!text) return;
+  tooltipEl.textContent = text;
+  const r = trigger.getBoundingClientRect();
+  const w = tooltipEl.offsetWidth;
+  const h = tooltipEl.offsetHeight;
+  const x = Math.min(Math.max(8, r.left + r.width / 2 - w / 2), window.innerWidth - w - 8);
+  let y = r.top - h - 10;
+  if (y < 8) y = Math.min(r.bottom + 10, window.innerHeight - h - 8);
+  tooltipEl.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px)`;
+  tooltipEl.classList.add('is-visible');
+}
+
+function hideTooltip() {
+  tooltipEl.classList.remove('is-visible');
+}
+
+document.addEventListener('pointerover', (event) => {
+  const trigger = event.target.closest?.('[data-tooltip]');
+  if (trigger) showTooltip(trigger);
+  else hideTooltip();
+});
+document.addEventListener('pointerdown', hideTooltip, true);
+document.addEventListener('focusin', (event) => {
+  const trigger = event.target.closest?.('[data-tooltip]');
+  if (trigger && event.target.matches(':focus-visible')) showTooltip(trigger);
+  else hideTooltip();
+});
+document.addEventListener('focusout', hideTooltip);
+document.addEventListener('scroll', hideTooltip, true);
 
 renderPicker();
 renderBouquet();

@@ -38,19 +38,33 @@ be hosted as a static site, or loaded as a browser extension.
 
 ### Palettes & output
 - Harmony modes: spectrum, complementary, triadic, analogous, monochrome,
-  split-complementary.
+  split-complementary (plus tetradic and square via the API/MCP).
 - Brand mood presets: balanced, luxury, calm, playful, clinical, editorial,
   nature.
 - Lockable hue, saturation, and lightness channels.
 - **HEX, RGB, HSL, OKLCH, OKLab** outputs and generated color names.
 - WCAG contrast helper and A/B color compare.
-- Saved **bouquet**, **CSS custom-property** export, **JSON** export, recent
-  history.
+- Saved **bouquet** with removable chips, **CSS custom-property** export,
+  **JSON** export, recent history.
 - **Image-to-flower** palette extraction from an uploaded photo.
 
+### Color science
+- **Spectral pigment mixing** (Kubelka-Munk) — mix colors like paint, not
+  like RGB averages.
+- **10-step tint/shade ramps** and dark-background palette derivation.
+- **Brand kit generator** — pick a seed on a miniature flower and get a full
+  light/dark semantic token theme with a WCAG contrast audit built in.
+- **Brand color lookup** — search a bundled dataset of ~700 brands, or find
+  the nearest brands to any color by perceptual (ΔE) distance.
+- **Learn** — an in-app, interactive color-theory primer (mixing, harmony,
+  contrast, color spaces, and more).
+
 ### Experience
-- **Focus mode** — collapse the panels and top bar so the flower canvas is
-  centered; expand to return to the full studio.
+- **Three layout densities** — **Zen** (just a swatch, sliders, and copy),
+  **Focus** (flower alone, panels collapsed), and **Studio** (the full
+  toolkit). One click to switch; your choice is remembered.
+- Single-screen layout — the studio fits the viewport without page scrolling,
+  and the flower scales itself to the space available.
 - In-app help panel and per-control tooltips.
 - Smooth **60 fps** rendering; respects `prefers-reduced-motion`.
 
@@ -79,20 +93,26 @@ python tools/build_extension.py
 
 Then in `chrome://extensions` enable **Developer mode** → **Load unpacked** →
 select the `extension/` folder. Click the flower toolbar icon to open the studio.
-See [`extension/README.md`](./extension/README.md).
 
 ## Developer & agent integrations
 
 The color engine is available beyond the UI:
 
-- **Color engine module** — `core/color-engine.js`, a pure, dependency-free ES
-  module (conversion, palette/harmony, contrast, naming).
-- **REST API** — `node api/server.js` exposes `/convert`, `/palette`,
-  `/contrast`, `/name`, `/tokens` (plus an OpenAPI spec). See
+- **Color engine module** — `core/color-engine.js`, a pure ES module
+  (conversion, palettes/harmony, contrast, naming, ΔE, spectral mixing,
+  tint/shade ramps, dark-palette derivation, brand lookup, full theme
+  generation). Tested with `node --test core/color-engine.test.js`.
+- **REST API** — `node api/server.js` exposes the whole engine over HTTP
+  (`/convert`, `/palette`, `/contrast`, `/theme`, `/mix`, `/brand`, … plus an
+  OpenAPI 3.1 spec for function-calling agents). See
   [`api/README.md`](./api/README.md).
-- **MCP server** — `mcp/` exposes the engine as Model Context Protocol tools for
-  AI agents and assistants. See [`mcp/README.md`](./mcp/README.md) and
-  [`docs/AGENTS.md`](./docs/AGENTS.md).
+- **MCP server** — `mcp/` exposes the engine as 14 Model Context Protocol
+  tools and 2 prompts for AI agents and assistants. See
+  [`mcp/README.md`](./mcp/README.md) and [`docs/AGENTS.md`](./docs/AGENTS.md).
+- **Taste skill** — [`skills/colorflower-taste/SKILL.md`](./skills/colorflower-taste/SKILL.md)
+  encodes the judgment layer (which harmony fits which mood, contrast gates,
+  dark-mode rules) as a portable agent skill, and
+  [`DESIGN.md`](./DESIGN.md) documents Colorflower's own design tokens.
 
 ## Documentation
 
@@ -106,16 +126,19 @@ The color engine is available beyond the UI:
 ├── assets/
 │   ├── icons/          app icon & favicons
 │   └── screenshots/
-├── core/               shared color engine
+├── core/               shared color engine + tests
 ├── api/                REST API
 ├── mcp/                MCP server
 ├── extension/          built Chrome/Edge extension
-├── src/
-│   ├── app.js
-│   └── styles.css
+├── src/                web app (picker, Learn, Brand kit, styles)
+├── data/               curated brand-color overrides
+├── vendor/             vendored third-party libs (see vendor/NOTICE.md)
+├── skills/             portable agent skill (color taste)
+├── docs/               user guide & agent integration
 ├── tools/              build scripts (icons, extension)
 ├── index.html
 ├── site.webmanifest
+├── DESIGN.md           design-language token reference
 ├── LICENSE
 └── README.md
 ```

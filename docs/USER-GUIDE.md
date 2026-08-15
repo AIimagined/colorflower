@@ -59,21 +59,43 @@ The flower is interactive and alive:
 ## 5. Saving & exporting
 
 - **Bouquet** — **Add color** saves the current color to your bouquet palette
-  (up to 12).
+  (up to 12). Hover a saved chip and click its **×** to remove it.
 - **Copy HEX** copies the selected color.
 - **Copy CSS tokens** exports the bouquet as `:root { --colorflower-N: … }`.
 - **Copy JSON** exports the bouquet as structured JSON.
 - **Image to flower** — upload an image and the petals become its dominant
   sampled colors.
 
-## 6. Focus mode (layout)
+## 6. Layout densities: Zen · Focus · Studio
 
-The **Focus** toggle (top-right of the flower canvas) collapses the side panel
-and top bar so the flower is centered full-width — handy for presenting or for a
-distraction-free pick. Click it again (now labeled **Expand**) to restore the
-full studio layout.
+The switcher at the top-right of the flower canvas picks how much studio you
+want. Your choice is remembered between visits.
 
-## 7. Tooltips
+| Mode | What you get |
+| --- | --- |
+| **Zen** | The minimal strip: swatch, hue & saturation sliders, copy. No flower. |
+| **Focus** | The flower alone, centered full-width — panels and top bar fold away. |
+| **Studio** | The full toolkit (default). |
+
+## 7. Learn — interactive color theory
+
+The **Learn** button opens an eight-chapter interactive primer: the color
+wheel, pigment vs. light mixing, hue/saturation/lightness, tint/shade/tone,
+harmony geometry, contrast, color psychology, and named colors. Every chapter
+has live examples you can drag and adjust.
+
+## 8. Brand kits
+
+The **Brand** button turns a seed color into a full brand kit:
+
+1. Pick the seed on the miniature flower picker (or type a hex, or look up an
+   existing brand's color by name).
+2. Choose a mood.
+3. Colorflower generates light **and** dark semantic tokens (backgrounds,
+   surfaces, text, accents) with a WCAG contrast audit run on every pairing,
+   ready to copy as CSS custom properties.
+
+## 9. Tooltips
 
 Most controls show a short tooltip on hover/focus explaining what they do.
 
@@ -82,6 +104,7 @@ Most controls show a short tooltip on hover/focus explaining what they do.
 ## Installing / running
 
 - **Web:** open `index.html` (or serve the folder, e.g. `python -m http.server`).
-- **Chrome extension:** see [`extension/README.md`](../extension/README.md) —
-  load the `extension/` folder unpacked, then click the flower toolbar icon.
+- **Chrome extension:** load the `extension/` folder unpacked
+  (`chrome://extensions` → Developer mode → Load unpacked), then click the
+  flower toolbar icon.
 - The app is dependency-free and works fully offline.

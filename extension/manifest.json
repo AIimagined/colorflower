@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Colorflower \u2014 Color Picker",
   "short_name": "Colorflower",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "description": "Flower-native color picker and color system studio.",
   "icons": {
     "16": "assets/icons/icon-16.png",

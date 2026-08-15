@@ -1,19 +1,27 @@
 :root {
   --bg-a: #f7f3ec;
   --bg-b: #e8f1ec;
+  /* Surface ladder: canvas (page) -> surface-0 (panels) -> surface-1 (cards).
+     Depth comes from these steps + 1px borders, not from heavy shadows. */
   --surface: rgba(255, 255, 255, 0.54);
+  --surface-0: rgba(253, 252, 250, 0.92);
+  --surface-1: #ffffff;
   --surface-strong: #fffdf8;
   --ink: #211b24;
   --muted: #675f69;
-  --line: rgba(49, 38, 48, 0.13);
+  --line: rgba(35, 27, 38, 0.09);
+  --line-strong: rgba(35, 27, 38, 0.15);
   --green: #2e7b62;
   --green-dark: #205d49;
   --amber: #bd7b2a;
   --core-color: #e93a3a;
   --glass-line: rgba(255, 255, 255, 0.62);
   --glass-shade: rgba(35, 27, 38, 0.08);
-  --shadow: 0 30px 90px rgba(42, 31, 43, 0.16);
-  --soft-shadow: 0 18px 46px rgba(42, 31, 43, 0.1);
+  --radius-lg: 20px;
+  --radius-md: 14px;
+  --radius-sm: 10px;
+  --shadow: 0 1px 2px rgba(42, 31, 43, 0.04), 0 16px 40px rgba(42, 31, 43, 0.07);
+  --soft-shadow: 0 1px 2px rgba(42, 31, 43, 0.04), 0 6px 18px rgba(42, 31, 43, 0.05);
 }
 
 *,
@@ -27,10 +35,8 @@ body {
   min-height: 100vh;
   color: var(--ink);
   background:
-    radial-gradient(circle at 14% 8%, rgba(255, 255, 255, 0.98), transparent 28%),
-    radial-gradient(circle at 48% 40%, rgba(255, 255, 255, 0.72), transparent 36%),
-    radial-gradient(circle at 90% 14%, rgba(189, 123, 42, 0.13), transparent 24%),
-    radial-gradient(circle at 64% 92%, rgba(46, 123, 98, 0.13), transparent 32%),
+    radial-gradient(circle at 20% 0%, rgba(255, 255, 255, 0.9), transparent 40%),
+    radial-gradient(circle at 88% 100%, rgba(46, 123, 98, 0.07), transparent 42%),
     linear-gradient(135deg, var(--bg-a), var(--bg-b));
   font-family: "Aptos", "Segoe UI", sans-serif;
   overflow-x: hidden;
@@ -42,14 +48,17 @@ input {
 }
 
 .app-shell {
-  width: min(1280px, calc(100vw - 32px));
+  width: calc(100vw - 40px);
+  max-width: 1880px;
+  /* Exactly the viewport — the tool panel scrolls internally on short
+     viewports, so the page itself never needs a scrollbar. */
   height: 100vh;
-  min-height: 760px;
   margin: 0 auto;
   display: grid;
   /* Fixed px side column (was minmax) so it can interpolate to 0 for the
-     collapsible focus mode. */
-  grid-template-columns: 360px minmax(0, 1fr);
+     collapsible focus mode. Wide enough for the tool panel's two-column
+     card flow, so the panel fits on screen without scrolling. */
+  grid-template-columns: 620px minmax(0, 1fr);
   grid-template-rows: auto minmax(0, 1fr);
   gap: 18px 24px;
   align-items: start;
@@ -103,17 +112,16 @@ input {
 
 .top-bar {
   grid-column: 1 / -1;
-  min-height: 72px;
+  min-height: 60px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 20px;
   border: 1px solid var(--line);
-  border-radius: 28px;
-  background:
-    linear-gradient(135deg, rgba(253, 252, 250, 0.95), rgba(250, 247, 242, 0.9));
+  border-radius: var(--radius-lg);
+  background: var(--surface-0);
   box-shadow: var(--soft-shadow);
-  padding: 14px 18px;
+  padding: 10px 16px;
 }
 
 .brand-lockup {
@@ -150,13 +158,25 @@ input {
 }
 
 .top-actions span {
-  border: 1px solid rgba(46, 123, 98, 0.17);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid var(--line);
   border-radius: 999px;
-  background: rgba(46, 123, 98, 0.07);
-  color: var(--green-dark);
-  padding: 8px 11px;
-  font-size: 0.76rem;
-  font-weight: 900;
+  background: var(--surface-1);
+  color: var(--muted);
+  padding: 6px 11px;
+  font-size: 0.74rem;
+  font-weight: 750;
+}
+
+/* Status dot: quiet green signal instead of a loud filled chip. */
+.top-actions span:not(.version-pill)::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--green);
 }
 
 .top-actions .version-pill {
@@ -169,43 +189,56 @@ input {
 
 .tool-panel,
 .picker-stage {
-  border: 1px solid var(--glass-line);
-  border-radius: 28px;
-  /* Opaque frosted look without backdrop-filter: a live blur here re-rendered
-     every animation frame and was the dominant cause of the ~30fps idle jank. */
-  background:
-    linear-gradient(145deg, rgba(252, 251, 249, 0.96), rgba(248, 246, 242, 0.92));
-  box-shadow:
-    var(--shadow),
-    inset 0 1px 0 rgba(255, 255, 255, 0.88),
-    inset 0 -1px 0 rgba(35, 27, 38, 0.04);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  /* Flat surface, no backdrop-filter: a live blur here re-rendered every
+     animation frame and was the dominant cause of the ~30fps idle jank. */
+  background: var(--surface-0);
+  box-shadow: var(--shadow);
 }
 
 .tool-panel {
   position: relative;
-}
-
-.tool-panel::before {
-  content: "";
-  position: sticky;
-  top: -24px;
-  z-index: 5;
-  display: block;
-  height: 1px;
-  margin: -24px -24px 0;
-  background: linear-gradient(90deg, transparent, rgba(46, 123, 98, 0.3), transparent);
-}
-
-.tool-panel {
+  /* Two explicit card columns (.panel-col wrappers) — deterministic
+     balance, no masonry snaking. The whole toolkit fits on screen without
+     scrolling on desktop; overflow stays as a fallback for short viewports. */
   display: grid;
-  gap: 20px;
-  padding: 24px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  align-content: start;
+  padding: 16px;
   max-height: 100%;
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
   scrollbar-width: thin;
   scrollbar-color: rgba(46, 123, 98, 0.36) transparent;
+}
+
+.tool-panel > .brand-block {
+  grid-column: 1 / -1;
+}
+
+.panel-col {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+  min-width: 0;
+}
+
+/* Narrow screens: fall back to the single-column (scrolling) layout. */
+@media (max-width: 1280px) {
+  .app-shell {
+    grid-template-columns: 380px minmax(0, 1fr);
+  }
+
+  .tool-panel {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.app-shell.is-zen .tool-panel {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .tool-panel::-webkit-scrollbar {
@@ -219,18 +252,27 @@ input {
   background-clip: content-box;
 }
 
+/* Compact hero: one line of identity, not a landing-page banner — the
+   top bar already carries the product name, so this stays small. */
 .brand-block {
-  display: grid;
+  display: flex;
+  align-items: baseline;
   gap: 10px;
-  padding: 4px 2px 2px;
+  padding: 2px 2px 0;
+}
+
+.brand-block .eyebrow {
+  display: none;
 }
 
 .product-copy {
-  max-width: 34rem;
   margin: 0;
   color: var(--muted);
-  font-size: 0.98rem;
-  line-height: 1.52;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .eyebrow {
@@ -244,31 +286,43 @@ input {
 
 h1 {
   margin: 0;
-  max-width: 8ch;
-  font-size: clamp(2.35rem, 4vw, 3.65rem);
-  line-height: 0.94;
-  letter-spacing: -0.07em;
+  font-size: 1.15rem;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
 }
 
 h2 {
   margin: 0;
-  font-size: clamp(1.6rem, 2vw, 2.4rem);
-  letter-spacing: -0.045em;
+  font-size: clamp(1.25rem, 1.6vw, 1.6rem);
+  letter-spacing: -0.03em;
 }
 
 .readout {
   display: grid;
-  grid-template-columns: 82px 1fr;
-  gap: 16px;
-  align-items: start;
-  border: 1px solid rgba(255, 255, 255, 0.68);
-  border-radius: 22px;
-  padding: 16px;
-  background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.93), rgba(255, 252, 246, 0.88));
-  box-shadow:
-    var(--soft-shadow),
-    inset 0 1px 0 rgba(255, 255, 255, 0.86);
+  grid-template-columns: 56px minmax(0, 1fr);
+  gap: 10px 14px;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  background: var(--surface-1);
+}
+
+/* Flatten the inner wrapper so the format rows can escape the swatch
+   column and span the full card width — long values stay on one line. */
+.readout > div:not(.swatch) {
+  display: contents;
+}
+
+.readout .status-pill {
+  grid-column: 2;
+  align-self: center;
+  margin-bottom: 0 !important;
+}
+
+.readout .format-grid {
+  grid-column: 1 / -1;
 }
 
 .readout:hover,
@@ -281,14 +335,12 @@ h2 {
 }
 
 .swatch {
-  width: 82px;
+  width: 56px;
   aspect-ratio: 1;
-  border-radius: 50%;
+  border-radius: 16px;
   background: var(--core-color);
-  border: 7px solid #fff;
-  box-shadow:
-    inset 0 0 0 1px rgba(0, 0, 0, 0.08),
-    0 10px 28px rgba(0, 0, 0, 0.14);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
 }
 
 .readout p {
@@ -298,11 +350,8 @@ h2 {
 }
 
 .readout strong {
-  color: var(--ink);
-  display: inline-block;
-  min-width: 54px;
-  margin-right: 8px;
-  font-size: 0.72rem;
+  color: var(--muted);
+  font-size: 0.7rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -322,39 +371,46 @@ h2 {
 
 .format-grid {
   display: grid;
-  gap: 7px;
+  gap: 6px;
+}
+
+/* Label | value, aligned columns. Long values (oklch/oklab) wrap inside
+   the card instead of clipping or spilling past its edge — every digit of
+   a color value stays visible and copyable. */
+.format-grid p {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  align-items: baseline;
+  gap: 8px;
 }
 
 .format-grid span {
   font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
   color: var(--ink);
-  font-size: 0.78rem;
+  font-size: 0.72rem;
+  min-width: 0;
+  overflow-wrap: break-word;
 }
 
 .insight-card,
 .bouquet-card,
 .history-card,
 .utility-card {
-  border: 1px solid rgba(255, 255, 255, 0.62);
-  border-radius: 22px;
-  background:
-    linear-gradient(150deg, rgba(255, 255, 255, 0.92), rgba(253, 251, 248, 0.86));
-  box-shadow:
-    var(--soft-shadow),
-    inset 0 1px 0 rgba(255, 255, 255, 0.78);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface-1);
 }
 
 .insight-card {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 14px;
-  padding: 16px;
-  background:
-    linear-gradient(135deg, rgba(46, 123, 98, 0.08), rgba(255, 255, 255, 0.7));
+  gap: 12px;
+  padding: 12px;
+  background: linear-gradient(135deg, rgba(46, 123, 98, 0.05), var(--surface-1) 55%);
 }
 
 .mini-label {
-  margin: 0 0 6px;
+  margin: 0 0 4px;
   color: var(--muted);
   font-size: 0.68rem;
   font-weight: 900;
@@ -402,20 +458,16 @@ h2 {
 
 .control-card {
   display: grid;
-  gap: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.62);
-  border-radius: 22px;
-  padding: 16px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(253, 251, 248, 0.86));
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.78),
-    0 12px 32px rgba(42, 31, 43, 0.07);
+  gap: 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  background: var(--surface-1);
 }
 
 .control {
   display: grid;
-  gap: 10px;
+  gap: 6px;
   color: var(--muted);
   font-weight: 800;
 }
@@ -425,7 +477,7 @@ h2 {
   align-items: center;
   justify-content: space-between;
   gap: 14px;
-  font-size: 0.86rem;
+  font-size: 0.8rem;
 }
 
 .control output {
@@ -443,10 +495,10 @@ input[type="range"] {
 input[type="text"],
 select {
   width: 100%;
-  min-height: 38px;
-  border: 1px solid rgba(49, 38, 48, 0.14);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.82);
+  min-height: 34px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface-1);
   color: var(--ink);
   padding: 8px 10px;
   font: inherit;
@@ -473,17 +525,21 @@ select:hover {
   gap: 8px;
 }
 
+.lock-row {
+  gap: 6px;
+}
+
 .lock-row label {
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 7px;
   color: var(--muted);
-  font-size: 0.84rem;
+  font-size: 0.76rem;
   font-weight: 800;
-  border: 1px solid rgba(49, 38, 48, 0.11);
+  border: 1px solid var(--line);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.62);
-  padding: 7px 10px;
+  background: var(--surface-1);
+  padding: 4px 9px;
 }
 
 .hue-slider,
@@ -529,19 +585,18 @@ select:hover {
 
 .button-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
 }
 
 .command {
-  min-height: 48px;
-  border: 1px solid rgba(32, 93, 73, 0.22);
-  border-radius: 16px;
-  background: #fff;
+  min-height: 38px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface-1);
   color: var(--ink);
   cursor: pointer;
   font-weight: 800;
-  box-shadow: 0 8px 20px rgba(42, 31, 43, 0.07);
   transition:
     transform 160ms ease,
     border-color 160ms ease,
@@ -549,13 +604,14 @@ select:hover {
     background-color 160ms ease;
 }
 
-.button-row .command:last-child {
-  grid-column: span 2;
+.button-row .command {
+  font-size: 0.82rem;
+  padding: 0 6px;
 }
 
 .command:hover {
   border-color: var(--green);
-  box-shadow: 0 12px 26px rgba(42, 31, 43, 0.12);
+  box-shadow: var(--soft-shadow);
   transform: translateY(-1px);
 }
 
@@ -586,26 +642,26 @@ input[type="text"]:focus-visible {
 
 h3 {
   margin: 0;
-  font-size: 1.05rem;
-  letter-spacing: -0.025em;
+  font-size: 0.95rem;
+  letter-spacing: -0.02em;
 }
 
 .bouquet-card,
 .history-card,
 .utility-card {
-  padding: 16px;
+  padding: 12px;
 }
 
 .bouquet-card {
   display: grid;
-  gap: 14px;
+  gap: 10px;
 }
 
 .small-command {
-  min-height: 36px;
-  border: 1px solid rgba(32, 93, 73, 0.2);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.86);
+  min-height: 34px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface-1);
   color: var(--ink);
   padding: 7px 10px;
   cursor: pointer;
@@ -620,7 +676,7 @@ h3 {
 
 .small-command:hover {
   border-color: var(--green);
-  box-shadow: 0 8px 18px rgba(42, 31, 43, 0.1);
+  box-shadow: var(--soft-shadow);
   transform: translateY(-1px);
 }
 
@@ -633,16 +689,55 @@ h3 {
 
 .color-chip {
   min-width: 0;
-  min-height: 42px;
+  min-height: 40px;
   display: grid;
   grid-template-columns: 16px 1fr;
   align-items: center;
   gap: 7px;
-  border: 1px solid rgba(49, 38, 48, 0.11);
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface-1);
   padding: 7px;
   cursor: pointer;
+  transition: border-color 140ms ease;
+}
+
+.color-chip {
+  position: relative;
+}
+
+.color-chip:hover {
+  border-color: var(--green);
+}
+
+/* Hover/focus-revealed remove control on saved-palette chips. */
+.chip-remove {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: #fff;
+  font-size: 0.8rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 120ms ease, transform 120ms ease;
+  transform: scale(0.8);
+}
+
+.color-chip:hover .chip-remove,
+.color-chip:focus-visible .chip-remove {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.chip-remove:hover {
+  background: #b63b3b;
 }
 
 .color-chip span {
@@ -677,11 +772,11 @@ h3 {
 }
 
 .token-output {
-  max-height: 150px;
+  max-height: 60px;
   margin: 0;
   overflow: auto;
   border: 1px solid rgba(49, 38, 48, 0.12);
-  border-radius: 16px;
+  border-radius: var(--radius-sm);
   background: #18151b;
   color: #f8f0df;
   padding: 12px;
@@ -738,19 +833,18 @@ h3 {
 
 .history-card {
   display: grid;
-  gap: 12px;
+  gap: 8px;
 }
 
-[data-tooltip] {
-  position: relative;
-}
-
-[data-tooltip]::after {
-  content: attr(data-tooltip);
-  position: absolute;
-  left: 50%;
-  bottom: calc(100% + 10px);
-  z-index: 2000;
+/* Single shared tooltip element, positioned by JS in fixed viewport
+   coordinates. CSS ::after tooltips were clipped by the tool panel's
+   overflow and ran off-screen near viewport edges; a fixed element placed
+   with clamped math escapes both. */
+.cf-tooltip {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 3000;
   width: max-content;
   max-width: 260px;
   padding: 9px 11px;
@@ -765,20 +859,11 @@ h3 {
   opacity: 0;
   pointer-events: none;
   text-align: left;
-  transform: translate(-50%, 6px);
-  transition:
-    opacity 140ms ease,
-    transform 140ms ease;
+  transition: opacity 140ms ease;
 }
 
-/* Show on hover or keyboard focus only. Using :focus-visible (and
-   :has(:focus-visible) for label-wrapped controls) instead of :focus-within
-   stops the tooltip lingering after a mouse click leaves the button focused. */
-[data-tooltip]:hover::after,
-[data-tooltip]:focus-visible::after,
-[data-tooltip]:has(:focus-visible)::after {
+.cf-tooltip.is-visible {
   opacity: 1;
-  transform: translate(-50%, 0);
 }
 
 .picker-stage {
@@ -797,16 +882,12 @@ h3 {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto auto;
   gap: 10px;
-  border-radius: 22px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
   background:
-    radial-gradient(circle at 50% 44%, rgba(255, 255, 255, 0.8), transparent 40%),
-    radial-gradient(circle at 50% 56%, rgba(46, 123, 98, 0.1), transparent 48%),
-    radial-gradient(circle at 18% 18%, rgba(189, 123, 42, 0.1), transparent 24%),
-    linear-gradient(145deg, rgba(255, 255, 255, 0.94), rgba(255, 252, 247, 0.9));
+    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.85), transparent 44%),
+    var(--surface-1);
   padding: 18px;
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.68),
-    inset 0 24px 80px rgba(255, 255, 255, 0.26);
 }
 
 .stage-header {
@@ -836,27 +917,39 @@ h3 {
   font-weight: 800;
 }
 
-.layout-toggle {
+.density-switch {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 14px 8px 11px;
+  gap: 2px;
+  padding: 3px;
   border: 1px solid rgba(46, 123, 98, 0.22);
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.82);
+}
+
+.density-btn {
+  border: 0;
+  border-radius: 999px;
+  padding: 6px 12px;
+  background: transparent;
   color: var(--green-dark);
   font-size: 0.78rem;
   font-weight: 800;
   cursor: pointer;
-  transition: background 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+  transition: background 160ms ease, color 160ms ease, box-shadow 160ms ease;
 }
 
-.layout-toggle:hover {
-  background: #fff;
-  box-shadow: 0 4px 12px rgba(42, 31, 43, 0.1);
+.density-btn:hover {
+  background: rgba(46, 123, 98, 0.1);
 }
 
-.layout-toggle:focus-visible {
+.density-btn.is-active {
+  background: var(--green-dark);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(42, 31, 43, 0.16);
+}
+
+.density-btn:focus-visible {
   outline: 2px solid var(--green);
   outline-offset: 2px;
 }
@@ -903,7 +996,7 @@ h3 {
   max-height: 86vh;
   padding: 0;
   border: 1px solid var(--line);
-  border-radius: 22px;
+  border-radius: var(--radius-lg);
   background: linear-gradient(160deg, #ffffff, #fdfbf8);
   box-shadow: 0 30px 80px rgba(42, 31, 43, 0.28);
   color: var(--ink, #2a1f2b);
@@ -980,43 +1073,573 @@ h3 {
   color: var(--muted);
 }
 
-/* Two stacked chevrons that point inward (collapse) / flip to outward (expand). */
-.layout-toggle-icon {
-  width: 13px;
-  height: 13px;
+/* Learn dialog: wider, two-pane (chapter nav + content), reuses the
+   help-dialog/help-close/help-dialog-head chrome above. */
+.learn-dialog {
+  width: min(760px, 94vw);
+}
+
+.learn-body {
+  display: grid;
+  grid-template-columns: 190px minmax(0, 1fr);
+  gap: 0;
+  max-height: calc(86vh - 84px);
+}
+
+.learn-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 14px 10px;
+  border-right: 1px solid rgba(46, 123, 98, 0.14);
+  overflow-y: auto;
+}
+
+.learn-nav-btn {
+  border: 0;
+  border-radius: 12px;
+  padding: 9px 11px;
+  background: transparent;
+  color: var(--ink);
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+  transition: background 140ms ease, color 140ms ease;
+}
+
+.learn-nav-btn:hover {
+  background: rgba(46, 123, 98, 0.08);
+}
+
+.learn-nav-btn.is-active {
+  background: var(--green-dark);
+  color: #fff;
+}
+
+.learn-chapter {
+  padding: 18px 22px 22px;
+  overflow-y: auto;
+}
+
+.learn-lede {
+  margin: 0 0 14px;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: #4a3f48;
+}
+
+.learn-note {
+  margin: 12px 0 0;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.learn-caption {
+  margin: 10px 0 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: #4a3f48;
+}
+
+.learn-caption[data-pass="false"] {
+  color: #b63b3b;
+  font-weight: 700;
+}
+
+.learn-mini-label {
+  margin: 12px 0 4px;
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: var(--green-dark);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.learn-toggle-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.learn-chip {
+  border: 1px solid rgba(46, 123, 98, 0.22);
+  border-radius: 999px;
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--green-dark);
+  font-size: 0.78rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.learn-chip.is-active {
+  background: var(--green-dark);
+  color: #fff;
+}
+
+.learn-wheel {
+  display: flex;
+  justify-content: center;
+  padding: 8px 0;
+}
+
+.learn-mix-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 10px;
+}
+
+.learn-mix-row input[type="color"] {
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 2px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.learn-field {
+  display: grid;
+  gap: 4px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+
+.learn-swatch-lg {
+  height: 64px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.learn-scale-rows {
+  margin-top: 8px;
+}
+
+.learn-strip {
+  display: flex;
+  border-radius: 10px;
+  overflow: hidden;
+  height: 34px;
+}
+
+.learn-strip-swatch {
+  flex: 1;
+}
+
+.learn-contrast-preview {
+  margin-top: 4px;
+  padding: 22px 18px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.learn-psych-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.learn-psych-row {
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  gap: 12px;
+  align-items: start;
+}
+
+.learn-psych-swatch {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+}
+
+.learn-psych-row strong {
+  display: block;
+  font-size: 0.86rem;
+  color: var(--green-dark);
+}
+
+.learn-psych-row p {
+  margin: 2px 0 0;
+  font-size: 0.84rem;
+  line-height: 1.4;
+  color: #4a3f48;
+}
+
+.learn-named-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(28px, 1fr));
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.learn-named-swatch {
+  aspect-ratio: 1;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+  padding: 0;
+}
+
+.learn-named-swatch:hover,
+.learn-named-swatch:focus-visible {
+  outline: 2px solid var(--green-dark);
+  outline-offset: 1px;
+}
+
+/* Brand dialog: single-pane (no chapter nav), reuses .help-dialog chrome +
+   several .learn-* widget classes from the Learn dialog above. */
+.brand-dialog {
+  width: min(680px, 94vw);
+}
+
+.brand-body {
+  padding: 16px 22px 22px;
+  overflow-y: auto;
+  max-height: calc(86vh - 84px);
+}
+
+.brand-search-field {
+  flex: 1;
+}
+
+.brand-search-input {
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  font: inherit;
+  font-size: 0.86rem;
+}
+
+.brand-search-results {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin: -4px 0 10px;
+}
+
+.brand-role-row {
+  margin-top: 14px;
+}
+
+.brand-role-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(84px, 1fr));
+  gap: 8px;
+}
+
+.brand-role-swatch {
+  display: grid;
+  gap: 3px;
+  font-size: 0.72rem;
+}
+
+.brand-role-swatch span {
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.brand-role-swatch code {
+  font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+  font-size: 0.7rem;
+}
+
+.brand-role-color {
+  height: 40px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+}
+
+.brand-audit {
+  display: grid;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.brand-audit-row {
+  display: grid;
+  grid-template-columns: 14px 1fr auto;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.6);
+  font-size: 0.8rem;
+}
+
+.brand-audit-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #b63b3b;
+}
+
+.brand-audit-row[data-pass="true"] .brand-audit-dot {
+  background: var(--green);
+}
+
+.brand-audit-ratio {
+  font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.brand-export {
+  margin-top: 14px;
+}
+
+.brand-export-pre {
+  margin: 0 0 8px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: #211b24;
+  color: #f4f0f6;
+  font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+  font-size: 0.76rem;
+  line-height: 1.5;
+  max-height: 220px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Mini flower picker — Colorflower's own picker popover (Brand dialog seed
+   etc.), replacing the native browser color input. */
+.mini-picker {
   position: relative;
-  flex: 0 0 auto;
+  display: inline-block;
 }
 
-.layout-toggle-icon::before,
-.layout-toggle-icon::after {
-  content: "";
+.mini-picker-swatch {
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: box-shadow 140ms ease, transform 140ms ease;
+}
+
+.mini-picker-swatch:hover {
+  box-shadow: var(--soft-shadow);
+  transform: translateY(-1px);
+}
+
+.mini-picker-pop {
   position: absolute;
-  top: 50%;
-  width: 6px;
-  height: 6px;
-  border: 2px solid currentColor;
-  border-left: 0;
-  border-bottom: 0;
-  transition: transform 320ms cubic-bezier(.5, .05, .2, 1);
-}
-
-.layout-toggle-icon::before {
+  z-index: 60;
+  top: calc(100% + 8px);
   left: 0;
-  transform: translateY(-50%) rotate(-135deg);
+  width: 236px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface-1);
+  box-shadow: var(--shadow);
+  display: none;
 }
 
-.layout-toggle-icon::after {
-  right: 0;
-  transform: translateY(-50%) rotate(45deg);
+.mini-picker-pop.is-open {
+  display: block;
 }
 
-.app-shell.is-collapsed .layout-toggle-icon::before {
-  transform: translateY(-50%) rotate(45deg);
+.mini-petal-ring {
+  position: relative;
+  width: 148px;
+  height: 148px;
+  margin: 0 auto 10px;
 }
 
-.app-shell.is-collapsed .layout-toggle-icon::after {
-  transform: translateY(-50%) rotate(-135deg);
+.mini-ring-center {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 44px;
+  height: 44px;
+  margin: -22px 0 0 -22px;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+}
+
+.mini-petal {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 24px;
+  height: 40px;
+  margin: -20px 0 0 -12px;
+  padding: 0;
+  border: 2px solid #fff;
+  /* Petal silhouette: rounded tip, tapered base. */
+  border-radius: 50% 50% 46% 46% / 68% 68% 30% 30%;
+  transform: rotate(var(--petal-angle)) translateY(-52px);
+  transform-origin: 50% 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.14);
+  transition: transform 160ms cubic-bezier(.33, 1, .68, 1);
+}
+
+.mini-petal:hover {
+  transform: rotate(var(--petal-angle)) translateY(-52px) scale(1.18);
+}
+
+.mini-petal.is-active {
+  border-color: var(--ink);
+}
+
+.mini-controls {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.mini-field {
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--muted);
+}
+
+.mini-range {
+  appearance: none;
+  width: 100%;
+  height: 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(80, 70, 86, 0.18);
+  outline: 0;
+}
+
+.mini-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid #f7f4f1;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.24);
+  cursor: grab;
+}
+
+.mini-range::-moz-range-thumb {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid #f7f4f1;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.24);
+  cursor: grab;
+}
+
+.mini-footer {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.mini-hex {
+  flex: 1;
+  min-width: 0;
+  min-height: 32px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  padding: 5px 9px;
+  font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+  font-size: 0.78rem;
+}
+
+.mini-eyedropper {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface-1);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.mini-eyedropper:hover {
+  border-color: var(--green);
+}
+
+/* Zen mode: hide the flower entirely and everything but the essentials
+   (swatch/readout, hue + saturation sliders, copy button) — the
+   react-colorful-weight minimal picker, built from already-shipped controls
+   rather than a second picker implementation. */
+.app-shell.is-zen .picker-wrap,
+.app-shell.is-zen #palette-garden,
+.app-shell.is-zen .stage-hint,
+.app-shell.is-zen .stage-header > div:first-child,
+.app-shell.is-zen .brand-block,
+.app-shell.is-zen .insight-card,
+.app-shell.is-zen .control-card .control:has(select),
+.app-shell.is-zen .control-card .lock-row,
+.app-shell.is-zen .control-card .control:has(#motion-range),
+.app-shell.is-zen .button-row #toggle-bloom,
+.app-shell.is-zen .button-row #shuffle-palette,
+.app-shell.is-zen .bouquet-card,
+.app-shell.is-zen .utility-grid,
+.app-shell.is-zen .history-card,
+.app-shell.is-zen .stage-header-actions > span {
+  display: none;
+}
+
+/* Zen is a compact stack, not a full-height dashboard: every row is
+   content-sized, nothing stretches to fill the viewport. */
+.app-shell.is-zen {
+  grid-template-columns: minmax(0, 560px);
+  grid-template-rows: auto auto auto;
+  justify-content: center;
+  align-content: start;
+  height: auto;
+  min-height: 100vh;
+}
+
+.app-shell.is-zen .picker-stage {
+  min-width: 0;
+  height: auto;
+  position: static;
+  /* Content-height toolbar at the page bottom: tooltips and the wrapped
+     button row must not be clipped. */
+  overflow: visible;
+}
+
+.app-shell.is-zen .stage-header {
+  justify-content: center;
+}
+
+.app-shell.is-zen .stage-header-actions {
+  flex-wrap: wrap;
+  justify-content: center;
+  row-gap: 8px;
+}
+
+.app-shell.is-zen .stage-card {
+  height: auto;
+  grid-template-rows: auto;
+}
+
+.app-shell.is-zen .tool-panel {
+  max-height: none;
+  overflow: visible;
 }
 
 .stage-hint {
@@ -1086,6 +1709,12 @@ h3 {
 
 .cf-float {
   display: grid;
+  /* Pin the track to the wrapper's own box (same trick as .picker-wrap):
+     when fitFlower() sizes this wrapper smaller than the flower, implicit
+     content-sized tracks would overflow right/down only — pinned tracks
+     keep the oversized flower centered with symmetric overflow. */
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
   place-items: center;
   will-change: transform;
   animation: flower-float 14s ease-in-out infinite;
@@ -1266,17 +1895,17 @@ h3 {
 
 .colorflower-picker.is-bud .cf-calyx {
   opacity: 1;
-  transform: scale(1) rotate(0deg);
+  transform: scale(1.14) rotate(0deg);
 }
 
 .cf-sepal {
   position: absolute;
   left: 0;
   top: 0;
-  width: calc(58px * var(--sepal-wid, 1));
-  height: calc(122px * var(--sepal-len, 1));
-  margin-left: calc(-29px * var(--sepal-wid, 1));
-  margin-top: calc(-122px * var(--sepal-len, 1));
+  width: calc(48px * var(--sepal-wid, 1));
+  height: calc(96px * var(--sepal-len, 1));
+  margin-left: calc(-24px * var(--sepal-wid, 1));
+  margin-top: calc(-96px * var(--sepal-len, 1));
   transform-origin: 50% 100%;
   transform: rotate(var(--sepal-angle));
   /* Soft rounded leaf: rounded tip, gently tapered rounded base — no points. */
@@ -1334,6 +1963,9 @@ h3 {
   height: var(--petal-h, 148px);
   margin-left: calc(var(--petal-w, 108px) / -2);
   margin-top: calc(var(--petal-h, 148px) * -0.82);
+  /* Keep every petal on its own compositor layer: transforms animate every
+     frame (wind/repulsion/fold), so promoting once avoids re-rasterizing. */
+  will-change: transform;
   border: 0;
   border-radius: 58% 44% 55% 46% / 76% 78% 28% 32%;
   padding: 0;

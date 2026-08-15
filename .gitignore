@@ -10,10 +10,12 @@ __pycache__/
 dist/
 build/
 
-# Internal working notes & dev artifacts — never publish.
+# Local working files
 .remember/
 .playwright-mcp/
 docs/superpowers/
+.claude/
+specs/
 .next/
 .cache/
 .DS_Store

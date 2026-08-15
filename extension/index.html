@@ -24,24 +24,19 @@
         </div>
       </div>
       <div class="top-actions" aria-label="Workspace status">
-        <span>Live picker</span>
-        <span>Token ready</span>
-        <span>WCAG assist</span>
         <span id="app-version" class="version-pill" data-tooltip="Colorflower app version">v1.1.0</span>
       </div>
     </header>
 
     <section class="tool-panel" aria-label="Color picker controls">
       <div class="brand-block">
-        <p class="eyebrow">Colorflower</p>
         <h1>Flower-native color picker</h1>
-        <p class="product-copy">Select from spectrum petals, refine with precise controls, and copy production-ready color formats.</p>
       </div>
 
+      <div class="panel-col">
       <div class="readout" aria-live="polite" data-tooltip="Live output for the currently selected petal, hue wheel, or slider color.">
         <div class="swatch" id="selected-swatch"></div>
         <div>
-          <p id="status" class="status-pill">Colorflower</p>
           <div class="format-grid">
             <p><strong>HEX</strong> <span id="selected-hex">#e93a3a</span></p>
             <p><strong>RGB</strong> <span id="selected-rgb">rgb(233, 58, 58)</span></p>
@@ -67,6 +62,34 @@
         </div>
       </section>
 
+      <section class="bouquet-card" aria-label="Palette bouquet">
+        <div class="section-heading">
+          <div>
+            <h3>Saved palette</h3>
+          </div>
+          <button class="small-command" id="add-bouquet" type="button" data-tooltip="Save the current color into your bouquet palette.">Add color</button>
+        </div>
+        <div id="bouquet-list" class="bouquet-list" aria-label="Saved colors"></div>
+        <div class="export-row">
+          <button class="small-command" id="copy-tokens" type="button" data-tooltip="Copy saved bouquet colors as CSS custom properties.">Copy CSS tokens</button>
+          <button class="small-command" id="copy-json" type="button" data-tooltip="Copy saved bouquet colors as structured JSON.">Copy JSON</button>
+        </div>
+        <pre id="token-output" class="token-output">:root {
+  --colorflower-1: #e93a3a;
+}</pre>
+      </section>
+
+      <section class="history-card" aria-label="Color history">
+        <div class="section-heading">
+          <div>
+            <h3>Recent colors</h3>
+          </div>
+        </div>
+        <div id="color-history" class="color-history"></div>
+      </section>
+      </div>
+
+      <div class="panel-col">
       <div class="control-card">
         <label class="control" for="harmony-mode" data-tooltip="Regenerates petals using professional color harmony rules.">
           <span>Palette logic</span>
@@ -122,24 +145,6 @@
         <button class="command" id="copy-color" type="button" data-tooltip="Copy the selected color as HEX.">Copy HEX</button>
       </div>
 
-      <section class="bouquet-card" aria-label="Palette bouquet">
-        <div class="section-heading">
-          <div>
-            <p class="mini-label">Bouquet</p>
-            <h3>Saved palette</h3>
-          </div>
-          <button class="small-command" id="add-bouquet" type="button" data-tooltip="Save the current color into your bouquet palette.">Add color</button>
-        </div>
-        <div id="bouquet-list" class="bouquet-list" aria-label="Saved colors"></div>
-        <div class="export-row">
-          <button class="small-command" id="copy-tokens" type="button" data-tooltip="Copy saved bouquet colors as CSS custom properties.">Copy CSS tokens</button>
-          <button class="small-command" id="copy-json" type="button" data-tooltip="Copy saved bouquet colors as structured JSON.">Copy JSON</button>
-        </div>
-        <pre id="token-output" class="token-output">:root {
-  --colorflower-1: #e93a3a;
-}</pre>
-      </section>
-
       <section class="utility-grid" aria-label="Advanced tools">
         <div class="utility-card">
           <p class="mini-label">Compare</p>
@@ -151,41 +156,39 @@
         </div>
 
         <label class="utility-card upload-card" for="image-upload" data-tooltip="Extract dominant colors from an uploaded image and map them onto the flower.">
-          <p class="mini-label">Image to flower</p>
           <strong>Extract palette</strong>
           <span>Upload an image and petals become sampled colors.</span>
           <input id="image-upload" type="file" accept="image/*" />
         </label>
       </section>
 
-      <section class="history-card" aria-label="Color history">
-        <div class="section-heading">
-          <div>
-            <p class="mini-label">Timeline</p>
-            <h3>Recent colors</h3>
-          </div>
-        </div>
-        <div id="color-history" class="color-history"></div>
-      </section>
+      </div>
     </section>
 
     <section class="picker-stage" aria-label="Animated flower color picker">
       <div class="stage-card">
         <div class="stage-header">
           <div>
-            <p class="eyebrow">Interactive canvas</p>
             <h2>Pick from the flower</h2>
           </div>
           <div class="stage-header-actions">
-            <span data-tooltip="The flower petals are generated by Colorflower's own palette engine.">36 spectrum petals</span>
             <button id="help-toggle" class="help-toggle" type="button" aria-haspopup="dialog" data-tooltip="How to use Colorflower.">
               <span aria-hidden="true">?</span>
               <span class="help-toggle-label">Help</span>
             </button>
-            <button id="layout-toggle" class="layout-toggle" type="button" aria-pressed="false" data-tooltip="Collapse the panels to focus on the flower (and back).">
-              <span class="layout-toggle-icon" aria-hidden="true"></span>
-              <span class="layout-toggle-label">Focus</span>
+            <button id="learn-toggle" class="help-toggle" type="button" aria-haspopup="dialog" data-tooltip="Interactive color theory: mixing, harmony, contrast, and more.">
+              <span aria-hidden="true">&#127793;</span>
+              <span class="help-toggle-label">Learn</span>
             </button>
+            <button id="brand-toggle" class="help-toggle" type="button" aria-haspopup="dialog" data-tooltip="Turn a seed color into a full light/dark brand kit with contrast-checked tokens.">
+              <span aria-hidden="true">&#128188;</span>
+              <span class="help-toggle-label">Brand</span>
+            </button>
+            <div class="density-switch" role="group" aria-label="Layout density">
+              <button id="density-zen" class="density-btn" type="button" data-density="zen" aria-pressed="false" data-tooltip="Minimal mode: just the swatch, hue/saturation sliders, and copy button. No flower.">Zen</button>
+              <button id="density-focus" class="density-btn" type="button" data-density="focus" aria-pressed="false" data-tooltip="Collapse the side panels to focus on the flower alone.">Focus</button>
+              <button id="density-studio" class="density-btn is-active" type="button" data-density="studio" aria-pressed="true" data-tooltip="Full studio layout with every tool panel.">Studio</button>
+            </div>
           </div>
         </div>
         <div class="picker-wrap">
@@ -194,7 +197,6 @@
           </div>
         </div>
         <div id="palette-garden" class="palette-garden" aria-label="Saved bouquet garden"></div>
-        <p class="stage-hint">Choose a petal, drag the outer hue wheel, use precision sliders, or generate palettes from brand logic.</p>
       </div>
     </section>
   </main>
@@ -251,15 +253,44 @@
         </ul>
       </section>
       <section>
-        <h3>Layout</h3>
+        <h3>Layout &amp; learning</h3>
         <ul>
-          <li><strong>Focus</strong> (top-right) collapses the side panel and top bar so the flower is centered; click again to expand.</li>
+          <li><strong>Zen / Focus / Studio</strong> (top-right) switch between a minimal picker, a flower-only view, and the full studio.</li>
+          <li><strong>Learn</strong> opens interactive color-theory chapters: mixing, hue/saturation/lightness, tint/shade/tone, harmony geometry, contrast, psychology, and a named-color browser.</li>
+          <li><strong>Brand</strong> turns a seed color (or a searched brand name) into a full light/dark theme: a 10-shade ramp, semantic tokens, a WCAG contrast audit, and CSS/Tailwind/W3C-tokens/SCSS/JSON export.</li>
         </ul>
       </section>
       <p class="help-foot">Full written guide: <a href="./docs/USER-GUIDE.md" target="_blank" rel="noopener">docs/USER-GUIDE.md</a></p>
     </div>
   </dialog>
 
+  <dialog id="learn-dialog" class="help-dialog learn-dialog" aria-label="Learn color theory">
+    <div class="help-dialog-head">
+      <div>
+        <p class="eyebrow">Learn</p>
+        <h2>Color theory, interactively</h2>
+      </div>
+      <button id="learn-close" class="help-close" type="button" aria-label="Close learn">&times;</button>
+    </div>
+    <div class="learn-body">
+      <nav id="learn-nav" class="learn-nav" aria-label="Chapters"></nav>
+      <div id="learn-chapter" class="learn-chapter"></div>
+    </div>
+  </dialog>
+
+  <dialog id="brand-dialog" class="help-dialog learn-dialog brand-dialog" aria-label="Brand workflow">
+    <div class="help-dialog-head">
+      <div>
+        <p class="eyebrow">Brand</p>
+        <h2>Seed color &#8594; brand kit</h2>
+      </div>
+      <button id="brand-close" class="help-close" type="button" aria-label="Close brand workflow">&times;</button>
+    </div>
+    <div id="brand-body" class="brand-body"></div>
+  </dialog>
+
   <script type="module" src="./src/app.js"></script>
+  <script type="module" src="./src/learn.js"></script>
+  <script type="module" src="./src/brand.js"></script>
 </body>
 </html>
