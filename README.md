@@ -5,9 +5,12 @@ picker, colors live on an animated, three-dimensional flower — pick from the
 petals, refine with precision controls, generate harmonious palettes, check
 contrast, and copy production-ready tokens.
 
-[![Colorflower demo — click to watch](./assets/media/colorflower-demo-poster.jpg)](https://github.com/AIimagined/colorflower/raw/main/assets/media/colorflower-demo.mp4)
+https://github.com/user-attachments/assets/f343ac2b-588f-4449-adc8-a8df296fb036
 
-<p align="center"><em>▶ Click the image above to watch the 30-second demo.</em></p>
+
+
+
+
 
 ## About
 
